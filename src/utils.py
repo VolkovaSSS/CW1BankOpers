@@ -9,11 +9,13 @@ from requests import RequestException
 from dotenv import load_dotenv
 import os
 import logging
+from pathlib import Path
 
 
 logger = logging.getLogger("utils")
 logger.setLevel(logging.DEBUG)
-file_handler = logging.FileHandler(os.path.join(os.getcwd(), "logs", "utils.logs", "w", "utf-8"))
+BASE_DIR = Path(__file__).resolve().parent.parent
+file_handler = logging.FileHandler(BASE_DIR / "logs" / "utils.log", "w", "utf-8")
 file_formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
@@ -24,6 +26,8 @@ def get_period(date_str: str, num_months: int = 0, date_format: str = "%Y-%m-%d 
     try:
         date_date = datetime.strptime(date_str, date_format)
     except Exception as ex:
+        message = f"Проверьте формат даты : %Y-%m-%d %H:%M:%S"
+        logger.error(message)
         return []
     if num_months == 0:
         date_start = date_date.replace(day=1, hour=0, minute=0, second=0)
@@ -38,11 +42,17 @@ def get_period(date_str: str, num_months: int = 0, date_format: str = "%Y-%m-%d 
 def get_user_settings(file_name: str) -> dict:
     """Возвращает словарь со списками настроек пользователя из файла json"""
 
+    if not os.path.isfile(file_name):
+        message = f"Файл {file_name} не найден"
+        logger.error(message)
+        raise FileNotFoundError(message)
+
     with open(file_name, "r") as file:
         try:
             user_settings = json.load(file)
         except json.JSONDecodeError:
             message = f"Ошибка формата файла: {file_name}"
+            logger.error(message)
             print(message)
             return {}
     return user_settings
@@ -50,6 +60,11 @@ def get_user_settings(file_name: str) -> dict:
 
 def get_operations(data_file: str, period: list) -> pd.DataFrame:
     """Вызывает функцию чтения данных (пока только EXCEL)"""
+
+    if not os.path.isfile(data_file):
+        message = f"Файл {data_file} не найден"
+        logger.error(message)
+        raise FileNotFoundError(message)
 
     return read_transactions_excel(data_file, period)
 
@@ -64,15 +79,18 @@ def read_transactions_excel(data_file: str, period: Optional[list] = None) -> pd
     Бонусы (включая кэшбэк); Округление на инвесткопилку; Сумма операции с округлением"""
 
     try:
+        logger.info(f"начало чтения файла: {data_file}")
         df = pd.read_excel(data_file, sheet_name="Отчет по операциям")
         df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True)
         if period:
-            df_filtered = df[(df["Дата операции"] <= period[1]) & (df["Дата операции"] >= period[0])]
-            df_sorted = df_filtered.sort_values(by="Дата операции")
-        else:
-            df_sorted = df.sort_values(by="Дата операции")
+            df = df[(df["Дата операции"] <= period[1]) & (df["Дата операции"] >= period[0])]
+
+        df_sorted = df.sort_values(by="Дата операции")
+        logger.info(f"Конец чтения файла {data_file}")
+
         return df_sorted
     except Exception as ex:
+        logger.error(ex)
         raise Exception(f"Ошибка при чтении файла: {ex}")
 
 
@@ -97,10 +115,11 @@ def get_card_info(df: pd.DataFrame) -> list[dict]:
     общая сумма расходов total_spent: float;
     кешбэк (1 рубль на каждые 100 рублей) cashback: float"""
 
+    logger.info(f"Формируем сводную информацию по картам")
     filtered_df = df[df["Сумма платежа"] < 0]
     cards_group = filtered_df.groupby("Номер карты")["Сумма платежа"].sum()
     result = [
-        {"last_digits": item[0][-4:], "total_spent": abs(item[1]), "cashback": round(item[1] // (-100), 2)}
+        {"last_digits": item[0][-4:], "total_spent": round(abs(item[1]),2), "cashback": round(item[1] // (-100), 2)}
         for item in cards_group.items()
     ]
     return result
@@ -145,8 +164,10 @@ def get_currency_rates(currencies) -> list[dict]:
     if response.status_code == 200:
         rates = response.json().get("rates", {})
         res_list = [{"currency": key, "rate": value} for key, value in rates.items()]
+        logger.info(f"Получены курсы валют с сайта https://api.apilayer.com")
         return res_list
     else:
+        logger.error("Ошибка доступа к сайту https://api.apilayer.com")
         raise RequestException(response.status_code)
 
 
@@ -168,7 +189,9 @@ def get_stock_prices(stocks: list) -> list:
             if "Global Quote" in data:
                 price = float(data["Global Quote"]["05. price"])
                 prices.append({"stock": stock, "price": price})
-        except Exception as e:
-            print(f"Ошибка для {stock}: {e}")
+                logger.info(f"Получен котировка {stock} с сайта https://www.alphavantage")
+        except Exception as ex:
+            logger.error("Ошибка для {stock}: {ex}")
+            print(f"Ошибка для {stock}: {ex}")
 
     return prices

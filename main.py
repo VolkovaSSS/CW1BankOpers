@@ -23,6 +23,7 @@ def main():
 
     if num_menu == '1':
         trans_data = generate_page_main("2021-12-04 15:51:50")
+        print(trans_data)
     elif num_menu == '2':
         df = read_transactions_excel(file_xlsx)
         transactions_list = df.to_dict(orient='records')

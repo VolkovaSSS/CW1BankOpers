@@ -5,6 +5,17 @@ import json
 from datetime import datetime
 import os
 from src.utils import get_period
+import logging
+from pathlib import Path
+
+
+logger = logging.getLogger("utils")
+logger.setLevel(logging.DEBUG)
+BASE_DIR = Path(__file__).resolve().parent.parent
+file_handler = logging.FileHandler(BASE_DIR / "logs" / "reports.log", "w", "utf-8")
+file_formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
 
 
 def save_report(report_file: Optional[str] = None) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
@@ -20,13 +31,13 @@ def save_report(report_file: Optional[str] = None) -> Callable[[Callable[..., An
                 file_name = f"{func.__name__}_{date_str}.json"
                 name_f = os.path.join(os.getcwd(), "data", file_name)
             try:
+                logger.info(f"запись данных в файл {file_name}")
                 with open(name_f, "w", encoding="utf-8") as f:
                     f.write(result)
-                # with open(name_f, 'w') as file:
-                #     json.dump(result, file, indent=4)
-                # result.to_json(name_f, orient="records", indent=4, lines=True, force_ascii=False)
             except Exception as ex:
-                print(f"✗ Ошибка при записи файла: {ex}")
+                message = f"✗ Ошибка при записи файла: {ex}"
+                logger.error(message)
+                print(message)
 
             return result
 
@@ -40,10 +51,11 @@ def spending_by_category(transactions: pd.DataFrame, category_: str, date: Optio
     """Возвращает траты по заданной категории
     за последние три месяца (от переданной даты)"""
 
+    logger.info(f"получение данных по категории {category_}")
+
     if not date:
         date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     period = get_period(date, num_months=3)
-    print(type(transactions))
 
     transactions["Дата операции"] = pd.to_datetime(transactions["Дата операции"], dayfirst=True)
     filtered_data = transactions[
@@ -52,6 +64,8 @@ def spending_by_category(transactions: pd.DataFrame, category_: str, date: Optio
         & (transactions["Категория"] == category_)
         & (transactions["Сумма платежа"] < 0)
     ]
-
+    if filtered_data.empty:
+        print(f"По категории {category_} нет данных")
     result = filtered_data.to_json(orient="records", indent=4, force_ascii=False)
+    logger.info(f"Данные по категории получены {category_}")
     return result
