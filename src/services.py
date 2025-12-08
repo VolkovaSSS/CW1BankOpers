@@ -1,11 +1,10 @@
-from typing import Any, List, Dict
-import pandas as pd
+import logging
 from datetime import datetime
 from math import ceil
-import logging
-import os
 from pathlib import Path
+from typing import Any, Dict, List
 
+import pandas as pd
 
 logger = logging.getLogger("utils")
 logger.setLevel(logging.DEBUG)
@@ -19,12 +18,16 @@ logger.addHandler(file_handler)
 def investment_bank(month: str, transactions: List[Dict[str, Any]], limit: int) -> float:
     """Возвращает сумму, которую удалось бы отложить в Инвесткопилку"""
 
-    logger.info(f" Расчет инвесткопилки ")
+    logger.info("Расчет инвесткопилки")
     month_obj = datetime.strptime(month, "%Y-%m")
     df = pd.DataFrame(transactions)
-    df = df[(df["Дата операции"].dt.year == month_obj.year) & (df["Дата операции"].dt.month == month_obj.month) & (df["Сумма платежа"] < 0)]
+    df = df[
+        (df["Дата операции"].dt.year == month_obj.year)
+        & (df["Дата операции"].dt.month == month_obj.month)
+        & (df["Сумма платежа"] < 0)
+    ]
     df["Округление на инвесткопилку"] = df["Сумма платежа"].apply(lambda x: ceil(abs(x) / limit) * limit - abs(x))
     df["Дата операции"] = pd.to_datetime(df["Дата операции"], format="%d.%m.%Y %H:%M:%S")
 
     total = df["Округление на инвесткопилку"].sum()
-    return total
+    return round(total, 2)

@@ -1,16 +1,15 @@
+import json
+import logging
+import os
+from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 import pandas as pd
-import json
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 import requests
-from requests import RequestException
+from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
-import os
-import logging
-from pathlib import Path
-
+from requests import RequestException
 
 logger = logging.getLogger("utils")
 logger.setLevel(logging.DEBUG)
@@ -26,7 +25,7 @@ def get_period(date_str: str, num_months: int = 0, date_format: str = "%Y-%m-%d 
     try:
         date_date = datetime.strptime(date_str, date_format)
     except Exception as ex:
-        message = f"Проверьте формат даты : %Y-%m-%d %H:%M:%S"
+        message = f"{ex} Проверьте формат даты : %Y-%m-%d %H:%M:%S"
         logger.error(message)
         return []
     if num_months == 0:
@@ -115,11 +114,11 @@ def get_card_info(df: pd.DataFrame) -> list[dict]:
     общая сумма расходов total_spent: float;
     кешбэк (1 рубль на каждые 100 рублей) cashback: float"""
 
-    logger.info(f"Формируем сводную информацию по картам")
+    logger.info("Формируем сводную информацию по картам")
     filtered_df = df[df["Сумма платежа"] < 0]
     cards_group = filtered_df.groupby("Номер карты")["Сумма платежа"].sum()
     result = [
-        {"last_digits": item[0][-4:], "total_spent": round(abs(item[1]),2), "cashback": round(item[1] // (-100), 2)}
+        {"last_digits": item[0][-4:], "total_spent": round(abs(item[1]), 2), "cashback": round(item[1] // (-100), 2)}
         for item in cards_group.items()
     ]
     return result
@@ -164,7 +163,7 @@ def get_currency_rates(currencies) -> list[dict]:
     if response.status_code == 200:
         rates = response.json().get("rates", {})
         res_list = [{"currency": key, "rate": value} for key, value in rates.items()]
-        logger.info(f"Получены курсы валют с сайта https://api.apilayer.com")
+        logger.info("Получены курсы валют с сайта https://api.apilayer.com")
         return res_list
     else:
         logger.error("Ошибка доступа к сайту https://api.apilayer.com")
@@ -181,7 +180,7 @@ def get_stock_prices(stocks: list) -> list:
     return prices
     for stock in stocks:
         try:
-            url = f"https://www.alphavantage.co/query"
+            url = "https://www.alphavantage.co/query"
             params = {"function": "GLOBAL_QUOTE", "symbol": stock, "apikey": API_KEY_STOCKS}
             response = requests.get(url, params=params, timeout=10)
             data = response.json()

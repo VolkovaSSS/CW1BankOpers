@@ -1,13 +1,14 @@
-import pandas as pd
-from typing import Any, Callable, Optional
-from functools import wraps
 import json
-from datetime import datetime
-import os
-from src.utils import get_period
 import logging
+import os
+from datetime import datetime
+from functools import wraps
 from pathlib import Path
+from typing import Any, Callable, Optional
 
+import pandas as pd
+
+from src.utils import get_period
 
 logger = logging.getLogger("utils")
 logger.setLevel(logging.DEBUG)
@@ -47,7 +48,7 @@ def save_report(report_file: Optional[str] = None) -> Callable[[Callable[..., An
 
 
 @save_report()
-def spending_by_category(transactions: pd.DataFrame, category_: str, date: Optional[str] = None) -> json:
+def spending_by_category(transactions: pd.DataFrame, category_: str, date: Optional[str] = None) -> str:
     """Возвращает траты по заданной категории
     за последние три месяца (от переданной даты)"""
 

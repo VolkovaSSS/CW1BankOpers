@@ -1,18 +1,19 @@
 import json
 import os
+
 from src.utils import (
-    get_period,
-    get_operations,
-    get_currency_rates,
-    get_stock_prices,
-    get_user_settings,
-    get_top_five,
     form_greeting,
     get_card_info,
+    get_currency_rates,
+    get_operations,
+    get_period,
+    get_stock_prices,
+    get_top_five,
+    get_user_settings,
 )
 
 
-def generate_page_main(date_for_report: str) -> json:
+def generate_page_main(date_for_report: str) -> str:
     """принимает строку с датой и временем в формате YYYY-MM-DD HH:MM:SS
     возвращает JSON-ответ для страницы ГЛАВНАЯ"""
 
