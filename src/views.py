@@ -26,7 +26,7 @@ def generate_page_main(date_for_report: str) -> str:
 
     greeting = form_greeting()
     cards = get_card_info(df)
-    top_transactions = get_top_five(df)
+    top_transactions = get_top(df, 5)
     currency_rates = get_currency_rates(user_currencies)
     stock_price = get_stock_prices(user_stocks)
     # spending_by_category(df)

@@ -21,7 +21,7 @@ def main():
     num_menu = input()
 
     if num_menu == "1":
-        trans_data = generate_page_main("2021-12-04 15:51:50")
+        trans_data = generate_page_main("2021-11-28 15:51:50")
         print(trans_data)
     elif num_menu == "2":
         df = read_transactions_excel(file_xlsx)
