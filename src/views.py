@@ -1,5 +1,5 @@
 import json
-import os
+from pathlib import Path
 
 from src.utils import (
     form_greeting,
@@ -17,10 +17,11 @@ def generate_page_main(date_for_report: str) -> str:
     """принимает строку с датой и временем в формате YYYY-MM-DD HH:MM:SS
     возвращает JSON-ответ для страницы ГЛАВНАЯ"""
 
-    file_settings = os.path.join(os.getcwd(), "data", "user_settings.json")
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    file_settings = BASE_DIR / "data"/ "user_settings.json"
     user_currencies = get_user_settings(file_settings).get("user_currencies", [])
     user_stocks = get_user_settings(file_settings).get("user_stocks", [])
-    file_xlsx = os.path.join(os.getcwd(), "data", "operations.xlsx")
+    file_xlsx = BASE_DIR / "data"/ "operations.xlsx"
     data_period = get_period(date_for_report)
     df = get_operations(file_xlsx, data_period)
 
@@ -37,4 +38,6 @@ def generate_page_main(date_for_report: str) -> str:
         "currency_rates": currency_rates,
         "stock_price": stock_price,
     }
-    return json.dumps(data, ensure_ascii=False, indent=4)
+    name_f = Path(f"{BASE_DIR}/data/report_file.json")
+    result = json.dumps(data, ensure_ascii=False, indent=4)
+    return result

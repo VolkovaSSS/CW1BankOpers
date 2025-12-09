@@ -1,9 +1,9 @@
 import json
 import logging
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+import os
 
 import pandas as pd
 import requests
@@ -41,7 +41,7 @@ def get_period(date_str: str, num_months: int = 0, date_format: str = "%Y-%m-%d 
 def get_user_settings(file_name: str) -> dict:
     """Возвращает словарь со списками настроек пользователя из файла json"""
 
-    if not os.path.isfile(file_name):
+    if not file_name.is_file():
         message = f"Файл {file_name} не найден"
         logger.error(message)
         raise FileNotFoundError(message)
@@ -60,7 +60,7 @@ def get_user_settings(file_name: str) -> dict:
 def get_operations(data_file: str, period: list) -> pd.DataFrame:
     """Вызывает функцию чтения данных (пока только EXCEL)"""
 
-    if not os.path.isfile(data_file):
+    if not data_file.is_file():
         message = f"Файл {data_file} не найден"
         logger.error(message)
         raise FileNotFoundError(message)
