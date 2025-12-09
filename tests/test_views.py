@@ -1,5 +1,3 @@
-import json
-import pytest
 from unittest.mock import patch
 
 from src.views import generate_page_main
@@ -19,18 +17,13 @@ def test_generate_page_main(mock_greeting, mock_cards, mock_top, mock_currencies
     ]
     mock_top.return_value = [
         {"amount": 5510.8, "category": "Аптеки", "date": "02.11.2021", "description": "Ситидрайв"},
-        {"amount": 143.41, "category": "Каршеринг", "date": "15.10.2021", "description": "Ситидрайв"}
+        {"amount": 143.41, "category": "Каршеринг", "date": "15.10.2021", "description": "Ситидрайв"},
     ]
     mock_currencies.return_value = [{"currency": "EUR", "rate": 89.29}, {"currency": "USD", "rate": 76.68}]
     mock_stocks.return_value = [{"price": 277.89, "stock": "AAPL"}]
-    result = generate_page_main('2021-11-15 10:00:00')
+    result = generate_page_main("2021-11-15 10:00:00")
     assert '"greeting": "Доброй ночи"' in result
     assert '"last_digits": "5091"' in result
     assert '"top_transactions":' in result
     assert 'currency_rates":' in result
     assert 'stock_price":' in result
-
-
-
-
-

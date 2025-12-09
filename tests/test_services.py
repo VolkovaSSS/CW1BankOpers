@@ -1,5 +1,3 @@
-import pandas as pd
-
 from src.services import investment_bank
 
 
