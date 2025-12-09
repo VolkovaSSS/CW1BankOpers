@@ -11,7 +11,6 @@ from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
 from requests import RequestException
 
-
 logger = logging.getLogger("utils")
 logger.setLevel(logging.DEBUG)
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -78,20 +77,20 @@ def read_transactions_excel(data_file: str, period: Optional[list] = None) -> pd
     df['Дата операции'] <= period[1] & df["Дата операции"] >= [period[0]
     Бонусы (включая кэшбэк); Округление на инвесткопилку; Сумма операции с округлением"""
 
-    # try:
-    logger.info(f"начало чтения файла: {data_file}")
-    df = pd.read_excel(data_file, sheet_name="Отчет по операциям")
-    df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True, format="%d.%m.%Y %H:%M:%S")
-    if period:
-        df = df[(df["Дата операции"] <= period[1]) & (df["Дата операции"] >= period[0])]
+    try:
+        logger.info(f"начало чтения файла: {data_file}")
+        df = pd.read_excel(data_file, sheet_name="Отчет по операциям")
+        df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True, format="%d.%m.%Y %H:%M:%S")
+        if period:
+            df = df[(df["Дата операции"] <= period[1]) & (df["Дата операции"] >= period[0])]
 
-    # df_sorted = df.sort_values(by="Дата операции")
-    logger.info(f"Конец чтения файла {data_file}")
+        # df_sorted = df.sort_values(by="Дата операции")
+        logger.info(f"Конец чтения файла {data_file}")
 
-    return df
-    # except Exception as ex:
-    logger.error(ex)
-    raise Exception(f"Ошибка при чтении файла: {ex}")
+        return df
+    except Exception as ex:
+        logger.error(ex)
+        raise Exception(f"Ошибка при чтении файла: {ex}")
 
 
 def form_greeting() -> str:
@@ -173,7 +172,7 @@ def get_currency_rates(currencies: list[str]) -> list[dict]:
         response = requests.get(url, headers=headers, data=payload)
         if response.status_code == 200:
             rates = response.json().get("rates", {})
-            res_list = [{"currency": key, "rate": round(1/value, 2)} for key, value in rates.items()]
+            res_list = [{"currency": key, "rate": round(1 / value, 2)} for key, value in rates.items()]
             logger.info("Получены курсы валют с сайта https://api.apilayer.com")
             return res_list
         else:
@@ -191,18 +190,18 @@ def get_stock_prices(stocks: list[str]) -> list:
     if not stocks:
         return []
     for stock in stocks:
-            try:
-                url = "https://www.alphavantage.co/query"
-                params = {"function": "GLOBAL_QUOTE", "symbol": stock, "apikey": API_KEY_STOCKS}
-                response = requests.get(url, params=params, timeout=10)
-                data = response.json()
+        try:
+            url = "https://www.alphavantage.co/query"
+            params = {"function": "GLOBAL_QUOTE", "symbol": stock, "apikey": API_KEY_STOCKS}
+            response = requests.get(url, params=params, timeout=10)
+            data = response.json()
 
-                if "Global Quote" in data:
-                    price = float(data["Global Quote"]["05. price"])
-                    prices.append({"stock": stock, "price": price})
-                    logger.info(f"Получен котировка {stock} с сайта https://www.alphavantage")
-            except Exception as ex:
-                logger.error("Ошибка для {stock}: {ex}")
-                print(f"Ошибка для {stock}: {ex}")
+            if "Global Quote" in data:
+                price = float(data["Global Quote"]["05. price"])
+                prices.append({"stock": stock, "price": price})
+                logger.info(f"Получен котировка {stock} с сайта https://www.alphavantage")
+        except Exception as ex:
+            logger.error("Ошибка для {stock}: {ex}")
+            print(f"Ошибка для {stock}: {ex}")
 
     return prices

@@ -1,11 +1,13 @@
 import json
 import os
 from pathlib import Path
-import pandas as pd
-from src.reports import spending_by_category, save_report
 
+import pandas as pd
+
+from src.reports import save_report, spending_by_category
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 def test_spending_by_category(test_transactions: pd.DataFrame) -> None:
 
@@ -62,10 +64,11 @@ def test_spending_by_category(test_transactions: pd.DataFrame) -> None:
 ]"""
     assert result == expected
 
+
 def test_spending_by_category_empty(test_transactions: pd.DataFrame) -> None:
 
     result = spending_by_category(pd.DataFrame(test_transactions), "Авиа", "2021-12-04 15:51:50")
-    expected = '[\n\n]'
+    expected = "[\n\n]"
     assert result == expected
 
 
@@ -74,7 +77,7 @@ def test_save_report():
     def simple_json(test_dict: {dict}) -> str:
         return json.dumps(test_dict, ensure_ascii=False)
 
-    simple_json({'Тест': 'Успешный результат теста'})
+    simple_json({"Тест": "Успешный результат теста"})
     file_path = BASE_DIR / "data" / "test_result.json"
     try:
         with open(file_path, "r", encoding="utf-8") as file:
@@ -83,4 +86,3 @@ def test_save_report():
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
-

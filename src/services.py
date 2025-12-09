@@ -1,11 +1,10 @@
 import logging
 from datetime import datetime
-from pathlib import Path
 from math import ceil
+from pathlib import Path
 from typing import Any, Dict, List
 
 import pandas as pd
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 logger = logging.getLogger("utils")
@@ -20,6 +19,11 @@ def investment_bank(month: str, transactions: List[Dict[str, Any]], limit: int) 
     """Возвращает сумму, которую удалось бы отложить в Инвесткопилку"""
 
     logger.info("Расчет инвесткопилки")
+    if limit == 0:
+        total = 0.00
+        print(total)
+        return round(total, 2)
+
     month_obj = datetime.strptime(month, "%Y-%m")
     df = pd.DataFrame(transactions)
     if df.empty:
@@ -33,5 +37,6 @@ def investment_bank(month: str, transactions: List[Dict[str, Any]], limit: int) 
     df["Округление на инвесткопилку"] = df["Сумма платежа"].apply(lambda x: ceil(abs(x) / limit) * limit - abs(x))
     df["Дата операции"] = pd.to_datetime(df["Дата операции"], format="%d.%m.%Y %H:%M:%S")
 
-    total = df["Округление на инвесткопилку"].sum()
+    total = round(df["Округление на инвесткопилку"].sum(), 2)
+    print(total)
     return round(total, 2)

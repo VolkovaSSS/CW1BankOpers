@@ -1,6 +1,4 @@
-import json
 import logging
-import os
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
@@ -59,6 +57,7 @@ def spending_by_category(transactions: pd.DataFrame, category_: str, date: Optio
     if not date:
         date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     period = get_period(date, num_months=3)
+    category_cap = category_.capitalize()
 
     if transactions.empty:
         print("Нет исходных данных")
@@ -67,16 +66,18 @@ def spending_by_category(transactions: pd.DataFrame, category_: str, date: Optio
         print("Не выбрана категория")
         return ""
 
-    transactions["Дата операции"] = pd.to_datetime(transactions["Дата операции"], dayfirst=True, format="%d.%m.%Y %H:%M:%S")
-    filtered_data = transactions[
+    transactions["Дата операции"] = pd.to_datetime(
+        transactions["Дата операции"], dayfirst=True, format="%d.%m.%Y %H:%M:%S"
+    )
+    filtered_df = transactions[
         (transactions["Дата операции"] <= period[1])
         & (transactions["Дата операции"] >= period[0])
-        & (transactions["Категория"] == category_)
+        & (transactions["Категория"] == category_cap)
         & (transactions["Сумма платежа"] < 0)
-    ]
-    if filtered_data.empty:
+    ].copy()
+    if filtered_df.empty:
         print(f"По категории {category_} нет данных")
-    filtered_data['Дата операции'] = filtered_data['Дата операции'].dt.strftime('%d.%m.%Y %H:%M:%S')
-    result = filtered_data.to_json(orient="records", indent=4, force_ascii=False)
+    filtered_df["Дата операции"] = filtered_df["Дата операции"].dt.strftime("%d.%m.%Y %H:%M:%S")
+    result = filtered_df.to_json(orient="records", indent=4, force_ascii=False)
     logger.info(f"Данные по категории получены {category_}")
     return result

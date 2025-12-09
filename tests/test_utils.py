@@ -1,22 +1,22 @@
-from unittest.mock import mock_open, patch
 import os
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import mock_open, patch
+
 import pandas as pd
-from dotenv import load_dotenv
 import pytest
+from dotenv import load_dotenv
+
 from src.utils import (
-    get_period,
-    read_transactions_excel,
-    get_user_settings,
     form_greeting,
     get_card_info,
-    get_top,
     get_currency_rates,
-    get_stock_prices
+    get_period,
+    get_stock_prices,
+    get_top,
+    get_user_settings,
+    read_transactions_excel,
 )
-from tests.conftest import test_transactions, test_transactions_views
-
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
@@ -152,16 +152,17 @@ def test_get_top_empty() -> None:
 def test_get_currency_rates(mock_get):
 
     currencies = ["USD", "EUR"]
-    mock_get.return_value.json.return_value = {'base': 'RUB', 'date': "2025-12-09", 'rates': {'EUR': 0.011199, 'USD': 0.013041}}
+    mock_get.return_value.json.return_value = {
+        "base": "RUB",
+        "date": "2025-12-09",
+        "rates": {"EUR": 0.011199, "USD": 0.013041},
+    }
     mock_get.return_value.status_code = 200
     result = get_currency_rates(currencies)
 
-    expected = [{'currency': 'EUR', 'rate': 89.29}, {'currency': 'USD', 'rate': 76.68}]
-    assert get_currency_rates(currencies) == expected
-    # mock_get.assert_called_once_with(
-    #     "https://api.apilayer.com/exchangerates_data/latest?symbols=USD,EUR&base=RUB",
-    #     headers={"apikey": API_KEY}, data={}
-    # )
+    expected = [{"currency": "EUR", "rate": 89.29}, {"currency": "USD", "rate": 76.68}]
+    assert result == expected
+
 
 def test_get_get_stock_prices1():
 
@@ -170,30 +171,38 @@ def test_get_get_stock_prices1():
     print(result)
 
 
-
 @patch("requests.get")
 def test_get_stock_prices(mock_get):
 
     stocks = ["AAPL"]
-    mock_get.return_value.json.return_value = {'Global Quote': {'01. symbol': 'AAPL', '02. open': '278.1300',
-                                                                 '03. high': '279.6693', '04. low': '276.1500',
-                                                                 '05. price': '277.8900', '06. volume': '36406317',
-                                                                 '07. latest trading day': '2025-12-08',
-                                                                 '08. previous close': '278.7800',
-                                                                 '09. change': '-0.8900',
-                                                                 '10. change percent': '-0.3192%'}}
-                                               # {'Global Quote': {'01. symbol': 'GOOGL', '02. open': '320.0500',
-                                               #                   '03. high': '320.4400', '04. low': '311.2219',
-                                               #                   '05. price': '313.7200', '06. volume': '33403895',
-                                               #                   '07. latest trading day': '2025-12-08',
-                                               #                   '08. previous close': '321.0551',
-                                               #                   '09. change': '-7.3351',
-                                               #                   '10. change percent': '-2.2847%'}}
+    mock_get.return_value.json.return_value = {
+        "Global Quote": {
+            "01. symbol": "AAPL",
+            "02. open": "278.1300",
+            "03. high": "279.6693",
+            "04. low": "276.1500",
+            "05. price": "277.8900",
+            "06. volume": "36406317",
+            "07. latest trading day": "2025-12-08",
+            "08. previous close": "278.7800",
+            "09. change": "-0.8900",
+            "10. change percent": "-0.3192%",
+        }
+    }
+    # {'Global Quote': {'01. symbol': 'GOOGL', '02. open': '320.0500',
+    #                   '03. high': '320.4400', '04. low': '311.2219',
+    #                   '05. price': '313.7200', '06. volume': '33403895',
+    #                   '07. latest trading day': '2025-12-08',
+    #                   '08. previous close': '321.0551',
+    #                   '09. change': '-7.3351',
+    #                   '10. change percent': '-2.2847%'}}
     mock_get.return_value.status_code = 200
     result = get_stock_prices(stocks)
-    expected = [{'price': 277.89, 'stock': 'AAPL'}]
+    expected = [{"price": 277.89, "stock": "AAPL"}]
     # expected = [{'price': 277.89, 'stock': 'AAPL'}, {'price': 313.72, 'stock': 'GOOGL'}]
     assert result == expected
     mock_get.assert_called_once_with(
         "https://www.alphavantage.co/query",
-        params={"function": "GLOBAL_QUOTE", "symbol": 'AAPL', "apikey": API_KEY_STOCKS}, timeout=10)
+        params={"function": "GLOBAL_QUOTE", "symbol": "AAPL", "apikey": API_KEY_STOCKS},
+        timeout=10,
+    )
