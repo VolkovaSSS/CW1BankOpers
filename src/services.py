@@ -1,14 +1,15 @@
 import logging
 from datetime import datetime
-from math import ceil
 from pathlib import Path
+from math import ceil
 from typing import Any, Dict, List
 
 import pandas as pd
 
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 logger = logging.getLogger("utils")
 logger.setLevel(logging.DEBUG)
-BASE_DIR = Path(__file__).resolve().parent.parent
 file_handler = logging.FileHandler(BASE_DIR / "logs" / "services.log", "w", "utf-8")
 file_formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
 file_handler.setFormatter(file_formatter)
@@ -21,6 +22,9 @@ def investment_bank(month: str, transactions: List[Dict[str, Any]], limit: int) 
     logger.info("Расчет инвесткопилки")
     month_obj = datetime.strptime(month, "%Y-%m")
     df = pd.DataFrame(transactions)
+    if df.empty:
+        return 0.00
+    df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True)
     df = df[
         (df["Дата операции"].dt.year == month_obj.year)
         & (df["Дата операции"].dt.month == month_obj.month)

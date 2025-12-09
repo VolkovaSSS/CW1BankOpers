@@ -11,6 +11,7 @@ from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
 from requests import RequestException
 
+
 logger = logging.getLogger("utils")
 logger.setLevel(logging.DEBUG)
 BASE_DIR = Path(__file__).resolve().parent.parent

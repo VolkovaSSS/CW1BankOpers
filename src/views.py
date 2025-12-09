@@ -8,7 +8,7 @@ from src.utils import (
     get_operations,
     get_period,
     get_stock_prices,
-    get_top_five,
+    get_top,
     get_user_settings,
 )
 
@@ -29,7 +29,6 @@ def generate_page_main(date_for_report: str) -> str:
     top_transactions = get_top(df, 5)
     currency_rates = get_currency_rates(user_currencies)
     stock_price = get_stock_prices(user_stocks)
-    # spending_by_category(df)
 
     data = {
         "greeting": greeting,

@@ -1,4 +1,4 @@
-from unittest.mock import mock_open, patch, Mock
+from unittest.mock import mock_open, patch
 import os
 from pathlib import Path
 from datetime import datetime
